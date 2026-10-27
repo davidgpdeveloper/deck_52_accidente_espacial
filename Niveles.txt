@@ -1,4 +1,0 @@
-1-9: 0 amenazas
-10-24: 1 amenaza
-25-39: 2 amenazas
-40 o más: 3 amenazas
