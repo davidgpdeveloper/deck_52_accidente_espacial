@@ -360,7 +360,6 @@
       const numberSelector = document.getElementById('numberSelector');
 
       const selectedNumbers = new Set([1, 2, 3, 4, 5]);
-      let lastDeselectedNumber = null;
 
       const objectiveData = [
         'Resuelve 6 o más cartas incluyendo Sala de Control.',
@@ -388,6 +387,8 @@
         '25-39: 2 amenazas',
         '40 o más: 3 amenazas'
       ];
+
+      const ANIMATION_DURATION_MS = 1000;
 
       let objectiveRows = [];
       let threatRows = [];
@@ -472,6 +473,28 @@
         return [...indexes];
       }
 
+      function getSelectedRowIndexesForTable(totalRows) {
+        return [...selectedNumbers]
+          .filter((value) => Number.isInteger(value) && value >= 1 && value <= totalRows)
+          .map((value) => value - 1)
+          .filter((value, index, array) => array.indexOf(value) === index)
+          .sort((a, b) => a - b);
+      }
+
+      function getRandomValuesFromPool(pool, count) {
+        if (!pool.length || count <= 0) {
+          return [];
+        }
+
+        const shuffled = [...new Set(pool)];
+        for (let index = shuffled.length - 1; index > 0; index -= 1) {
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+        }
+
+        return shuffled.slice(0, Math.min(count, shuffled.length));
+      }
+
       function setSelectedRows(targetBody, selectedIndexes) {
         const rows = targetBody.querySelectorAll('tr');
         rows.forEach((row, index) => {
@@ -479,7 +502,7 @@
         });
       }
 
-      function animateSelection(targetBody, finalIndexes, totalRows, duration = 3000) {
+      function animateSelection(targetBody, finalIndexes, totalRows, allowedIndexes = null, duration = ANIMATION_DURATION_MS) {
         return new Promise((resolve) => {
           if (!finalIndexes.length) {
             setSelectedRows(targetBody, []);
@@ -487,8 +510,12 @@
             return;
           }
 
+          const validPool = allowedIndexes && allowedIndexes.length
+            ? [...new Set(allowedIndexes)]
+            : [...Array(totalRows).keys()];
+
           const loop = setInterval(() => {
-            const randomSelection = getRandomIndexes(totalRows, finalIndexes.length);
+            const randomSelection = getRandomValuesFromPool(validPool, finalIndexes.length);
             setSelectedRows(targetBody, randomSelection);
           }, 90);
 
@@ -528,34 +555,25 @@
       }
 
       function toggleNumberButton(value) {
-        if (value >= 1 && value <= 5) {
-          const isActive = selectedNumbers.has(value);
+        if (value < 1 || value > 7) {
+          return;
+        }
 
-          if (isActive) {
-            selectedNumbers.delete(value);
-
-            if (lastDeselectedNumber !== null && lastDeselectedNumber !== value) {
-              selectedNumbers.add(lastDeselectedNumber);
-            }
-
-            lastDeselectedNumber = value;
-          } else {
-            if (lastDeselectedNumber !== null && lastDeselectedNumber !== value) {
-              selectedNumbers.add(lastDeselectedNumber);
-            }
-
-            selectedNumbers.add(value);
-            lastDeselectedNumber = null;
-          }
+        if (selectedNumbers.has(value)) {
+          selectedNumbers.delete(value);
         } else {
-          if (selectedNumbers.has(value)) {
-            selectedNumbers.delete(value);
-          } else {
-            selectedNumbers.add(value);
-          }
+          selectedNumbers.add(value);
         }
 
         renderNumberSelector();
+      }
+
+      function getActiveTableIndexes(totalRows) {
+        return [...selectedNumbers]
+          .filter((value) => Number.isInteger(value) && value >= 1 && value <= totalRows)
+          .map((value) => value - 1)
+          .filter((value, index, array) => array.indexOf(value) === index)
+          .sort((a, b) => a - b);
       }
 
       function getEffectiveLevel() {
@@ -588,23 +606,44 @@
           return;
         }
 
-        const objectiveIndex = Math.floor(Math.random() * objectiveRows.length);
+        const objectiveAllowedIndexes = getSelectedRowIndexesForTable(objectiveRows.length);
+        const objectiveIndex = objectiveAllowedIndexes.length > 0
+          ? getRandomValuesFromPool(objectiveAllowedIndexes, 1)[0]
+          : null;
 
         setSelectedRows(objectiveTableBody, []);
         setSelectedRows(threatTableBody, []);
 
-        const objectivePromise = animateSelection(objectiveTableBody, [objectiveIndex], objectiveRows.length, 3000);
+        const objectivePromise = objectiveIndex === null
+          ? Promise.resolve().then(() => setSelectedRows(objectiveTableBody, []))
+          : animateSelection(
+              objectiveTableBody,
+              [objectiveIndex],
+              objectiveRows.length,
+              objectiveAllowedIndexes,
+              ANIMATION_DURATION_MS
+            );
 
         if (inputLevel < 10) {
+          Promise.all([objectivePromise]);
           return;
         }
 
         const threatCount = getThreatCountForLevel(inputLevel);
-        const threatIndexes = threatCount === 0 ? [] : getRandomIndexes(threatRows.length, threatCount);
+        const threatAllowedIndexes = getSelectedRowIndexesForTable(threatRows.length);
+        const threatIndexes = threatCount === 0 || threatAllowedIndexes.length === 0
+          ? []
+          : getRandomValuesFromPool(threatAllowedIndexes, threatCount);
 
-        const threatPromise = threatCount === 0
+        const threatPromise = threatCount === 0 || threatIndexes.length === 0
           ? Promise.resolve().then(() => setSelectedRows(threatTableBody, []))
-          : animateSelection(threatTableBody, threatIndexes, threatRows.length, 3000);
+          : animateSelection(
+              threatTableBody,
+              threatIndexes,
+              threatRows.length,
+              threatAllowedIndexes,
+              ANIMATION_DURATION_MS
+            );
 
         Promise.all([objectivePromise, threatPromise]);
       }
