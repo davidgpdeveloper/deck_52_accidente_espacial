@@ -1,0 +1,13 @@
+1. Resuelve 6 o más cartas incluyendo Sala de Control.
+
+2. Resuelve 2 Conductos de aire.
+
+3. Resuelve Cubierta de Instrumentación y Puerta Antiexplosión.
+
+4. Resuelve Área sin Atmosfera y descarta Cristal de datos.
+
+5. Resuelve Torreta de Seguridad y usa Kit Médico.
+
+6. Resuelve Xenoterror o explora Xenoterro dos veces.
+
+7. Explora 2 Módulos destrozados y resuelve Área sin Atmósfera. 

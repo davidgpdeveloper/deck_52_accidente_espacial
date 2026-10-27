@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deck52 - Accidente Espacial</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-soft: #121b23;
+        --panel: rgba(17, 24, 32, 0.82);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --text: #eaf3f4;
+        --muted: #a8bac5;
+        --green: #2ad88d;
+        --green-strong: #19b96a;
+        --green-soft: rgba(42, 216, 141, 0.12);
+        --red: #ff5a5f;
+        --red-strong: #db3f46;
+        --red-soft: rgba(255, 90, 95, 0.12);
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(42, 216, 141, 0.08), transparent 30%),
+          radial-gradient(circle at right, rgba(255, 90, 95, 0.08), transparent 35%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      body {
+        position: relative;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1600&q=80');
+        background-size: cover;
+        background-position: center;
+        opacity: 0.12;
+        filter: grayscale(0.2) brightness(0.7);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .app-shell {
+        position: relative;
+        z-index: 1;
+        width: min(1200px, 100%);
+        background: rgba(8, 12, 18, 0.78);
+        border: 1px solid var(--panel-border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 22px;
+        backdrop-filter: blur(12px);
+      }
+
+      .page-title {
+        margin: 0 0 18px;
+        text-align: center;
+        font-size: clamp(1.8rem, 3vw, 3rem);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      .controls-panel {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        padding: 18px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+      }
+
+      .input-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .number-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .number-button {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        box-shadow: none;
+        padding: 0;
+      }
+
+      .number-button.active {
+        background: linear-gradient(135deg, var(--green), var(--green-strong));
+        color: #062918;
+        border-color: rgba(42, 216, 141, 0.8);
+        box-shadow: 0 10px 24px rgba(25, 185, 106, 0.3);
+      }
+
+      .number-button.off {
+        opacity: 0.7;
+      }
+
+      input[type="number"] {
+        width: 120px;
+        height: 46px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+        font-size: 1.15rem;
+        text-align: center;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input[type="number"]:focus {
+        border-color: rgba(42, 216, 141, 0.8);
+        box-shadow: 0 0 0 4px rgba(42, 216, 141, 0.12);
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 0 24px;
+        height: 46px;
+        background: linear-gradient(135deg, var(--green), var(--green-strong));
+        color: #062918;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 10px 24px rgba(25, 185, 106, 0.35);
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      .levels-panel {
+        margin-bottom: 22px;
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .levels-panel h3 {
+        margin: 0 0 12px;
+        font-size: 0.98rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .level-rules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .level-rule {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: var(--text);
+        font-size: 0.88rem;
+      }
+
+      .level-rule strong {
+        color: var(--green);
+      }
+
+      .tables-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .table-panel {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 18px 16px 12px;
+      }
+
+      .table-panel h2 {
+        margin: 0 0 16px;
+        padding: 8px 14px;
+        border-radius: 12px;
+        font-size: 1.3rem;
+        letter-spacing: 0.12em;
+        text-align: center;
+      }
+
+      .objective-panel h2 {
+        color: var(--green);
+        border: 1px solid rgba(42, 216, 141, 0.7);
+        background: rgba(42, 216, 141, 0.08);
+      }
+
+      .threat-panel h2 {
+        color: var(--red);
+        border: 1px solid rgba(255, 90, 95, 0.7);
+        background: rgba(255, 90, 95, 0.08);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+      }
+
+      tr {
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      }
+
+      td {
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        line-height: 1.4;
+      }
+
+      .objective-panel td {
+        border-left: 2px solid rgba(42, 216, 141, 0.8);
+        border-right: 2px solid rgba(42, 216, 141, 0.8);
+      }
+
+      .threat-panel td {
+        border-left: 2px solid rgba(255, 90, 95, 0.8);
+        border-right: 2px solid rgba(255, 90, 95, 0.8);
+      }
+
+      .objective-panel tr.selected td,
+      .threat-panel tr.selected td {
+        background: rgba(255, 255, 255, 0.08);
+        transform: scale(1.01);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        font-weight: 700;
+      }
+
+      .objective-panel tr.selected td {
+        background: linear-gradient(90deg, rgba(42, 216, 141, 0.18), rgba(42, 216, 141, 0.08));
+      }
+
+      .threat-panel tr.selected td {
+        background: linear-gradient(90deg, rgba(255, 90, 95, 0.18), rgba(255, 90, 95, 0.08));
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding: 18px;
+        }
+
+        .controls-panel {
+          align-items: stretch;
+        }
+
+        .input-group {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        button {
+          flex: 1;
+        }
+
+        .result-tag {
+          width: 100%;
+          margin-left: 0;
+        }
+
+        .tables-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <h1 class="page-title">DECK 52: ACCIDENTE ESPACIAL</h1>
+
+      <header class="controls-panel">
+        <div class="input-group">
+          <label for="levelInput">Nivel</label>
+          <input id="levelInput" type="number" min="1" step="1" inputmode="numeric" value="1" placeholder="1" />
+        </div>
+
+        <div class="number-selector" id="numberSelector" aria-label="Selector de valores activos"></div>
+
+        <button id="runButton" type="button">EJECUTAR</button>
+      </header>
+
+      <section class="levels-panel">
+        <h3>Reglas de niveles</h3>
+        <div id="levelRules" class="level-rules"></div>
+      </section>
+
+      <main class="tables-grid">
+        <section class="table-panel objective-panel">
+          <h2>OBJETIVOS</h2>
+          <table>
+            <tbody id="objetivosTableBody"></tbody>
+          </table>
+        </section>
+
+        <section class="table-panel threat-panel">
+          <h2>AMENAZAS</h2>
+          <table>
+            <tbody id="amenazasTableBody"></tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const objectiveTableBody = document.getElementById('objetivosTableBody');
+      const threatTableBody = document.getElementById('amenazasTableBody');
+      const levelInput = document.getElementById('levelInput');
+      const runButton = document.getElementById('runButton');
+      const levelRulesContainer = document.getElementById('levelRules');
+      const numberSelector = document.getElementById('numberSelector');
+
+      const selectedNumbers = new Set([1, 2, 3, 4, 5]);
+      let lastDeselectedNumber = null;
+
+      const objectiveData = [
+        'Resuelve 6 o más cartas incluyendo Sala de Control.',
+        'Resuelve 2 Conductos de aire.',
+        'Resuelve Cubierta de Instrumentación y Puerta Antiexplosión.',
+        'Resuelve Área sin Atmosfera y descarta Cristal de datos.',
+        'Resuelve Torreta de Seguridad y usa Kit Médico.',
+        'Resuelve Xenoterror o explora Xenoterro dos veces.',
+        'Explora 2 Módulos destrozados y resuelve Área sin Atmósfera.'
+      ];
+
+      const threatData = [
+        'CUARENTENA: Retira las cartas de Sala Médica del mazo de Mapa.',
+        'ALARMA: Pierde 1 Salud cuando exploras Robots Guardianes o Torretas de Seguridad.',
+        'FLUCTUACIÓN GRAVITACIONAL: Cuando resuelvas Esclusa de Gravedad, baraja 2 cartas de Inventario en el mazo de Botín.',
+        'TEJIDO VIVO: Cuando explores Enjambres, debes tratar de resolverlos de manera inmediata.',
+        'SUELOS INESTABLES: Cuando el segundo Módulo Destrozado sea explorado, roba una carta de Acción. Con 4+, pierde 2 de Salud, pierdes 1 nivel y comienzas una nueva misión.',
+        'FUGA EN TANQUES QUÍMICOS: Cada vez que robes una carta de Acción resta 1 a su valor numérico (mínimo 1).',
+        'RIESGO DE RADIACIÓN: Pierde 1 de Salud por cada 3 cartas resueltas.'
+      ];
+
+      const levelRulesData = [
+        '1-9: 0 amenazas',
+        '10-24: 1 amenaza',
+        '25-39: 2 amenazas',
+        '40 o más: 3 amenazas'
+      ];
+
+      let objectiveRows = [];
+      let threatRows = [];
+      let levelRules = [];
+      let activeAnimations = [];
+
+      function sanitizeTextList(rawText) {
+        return rawText
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => line.replace(/^\d+\.\s*/, '').trim())
+          .filter(Boolean);
+      }
+
+      function parseLevelRules(rawTextList) {
+        return rawTextList
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [rangePart, countPart] = line.split(':').map((part) => part.trim());
+            const countMatch = countPart.match(/(\d+)/);
+            if (!rangePart || !countMatch) return null;
+
+            const count = Number(countMatch[1]);
+            const matchMinMax = rangePart.match(/^(\d+)\s*(?:-\s*(\d+)|o\s*m[aá]s)?$/i);
+            if (!matchMinMax) return null;
+
+            const min = Number(matchMinMax[1]);
+            const max = matchMinMax[2] ? Number(matchMinMax[2]) : null;
+
+            return { min, max, count };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.min - b.min);
+      }
+
+      function renderRules() {
+        levelRulesContainer.innerHTML = levelRules
+          .map((rule) => {
+            const range = rule.max === null ? `${rule.min} o más` : `${rule.min}-${rule.max}`;
+            const label = rule.count === 1 ? 'amenaza' : 'amenazas';
+            return `<div class="level-rule"><strong>${range}</strong>: ${rule.count} ${label}</div>`;
+          })
+          .join('');
+      }
+
+      function renderTableRows(targetBody, rows, variant) {
+        targetBody.innerHTML = rows
+          .map(
+            (row, index) => `
+              <tr data-index="${index}" data-variant="${variant}">
+                <td>${row}</td>
+              </tr>
+            `
+          )
+          .join('');
+      }
+
+      function getThreatCountForLevel(level) {
+        if (level < 10) {
+          return 0;
+        }
+
+        const matchedRule = levelRules.find((rule) => {
+          const inMinRange = level >= rule.min;
+          const inMaxRange = rule.max === null ? true : level <= rule.max;
+          return inMinRange && inMaxRange;
+        });
+
+        return matchedRule ? matchedRule.count : 0;
+      }
+
+      function getRandomIndexes(total, count) {
+        const indexes = new Set();
+
+        while (indexes.size < count) {
+          const randomIndex = Math.floor(Math.random() * total);
+          indexes.add(randomIndex);
+        }
+
+        return [...indexes];
+      }
+
+      function setSelectedRows(targetBody, selectedIndexes) {
+        const rows = targetBody.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+          row.classList.toggle('selected', selectedIndexes.includes(index));
+        });
+      }
+
+      function animateSelection(targetBody, finalIndexes, totalRows, duration = 3000) {
+        return new Promise((resolve) => {
+          if (!finalIndexes.length) {
+            setSelectedRows(targetBody, []);
+            resolve();
+            return;
+          }
+
+          const loop = setInterval(() => {
+            const randomSelection = getRandomIndexes(totalRows, finalIndexes.length);
+            setSelectedRows(targetBody, randomSelection);
+          }, 90);
+
+          const timeoutId = setTimeout(() => {
+            clearInterval(loop);
+            setSelectedRows(targetBody, finalIndexes);
+            resolve();
+          }, duration);
+
+          activeAnimations.push({ loop, timeoutId });
+        });
+      }
+
+      function renderNumberSelector() {
+        numberSelector.innerHTML = Array.from({ length: 7 }, (_, index) => index + 1)
+          .map((value) => {
+            const isActive = selectedNumbers.has(value);
+            return `
+              <button
+                type="button"
+                class="number-button ${isActive ? 'active' : 'off'}"
+                data-number="${value}"
+                aria-pressed="${isActive}"
+              >
+                ${value}
+              </button>
+            `;
+          })
+          .join('');
+
+        numberSelector.querySelectorAll('.number-button').forEach((button) => {
+          button.addEventListener('click', () => {
+            const value = Number(button.dataset.number);
+            toggleNumberButton(value);
+          });
+        });
+      }
+
+      function toggleNumberButton(value) {
+        if (value >= 1 && value <= 5) {
+          const isActive = selectedNumbers.has(value);
+
+          if (isActive) {
+            selectedNumbers.delete(value);
+
+            if (lastDeselectedNumber !== null && lastDeselectedNumber !== value) {
+              selectedNumbers.add(lastDeselectedNumber);
+            }
+
+            lastDeselectedNumber = value;
+          } else {
+            if (lastDeselectedNumber !== null && lastDeselectedNumber !== value) {
+              selectedNumbers.add(lastDeselectedNumber);
+            }
+
+            selectedNumbers.add(value);
+            lastDeselectedNumber = null;
+          }
+        } else {
+          if (selectedNumbers.has(value)) {
+            selectedNumbers.delete(value);
+          } else {
+            selectedNumbers.add(value);
+          }
+        }
+
+        renderNumberSelector();
+      }
+
+      function getEffectiveLevel() {
+        const numericValue = Number(levelInput.value) || 0;
+        const activeNumbersTotal = [...selectedNumbers].reduce((sum, value) => sum + value, 0);
+        return numericValue + activeNumbersTotal;
+      }
+
+      function loadData() {
+        objectiveRows = sanitizeTextList(objectiveData.join('\n'));
+        threatRows = sanitizeTextList(threatData.join('\n'));
+        levelRules = parseLevelRules(levelRulesData);
+
+        renderTableRows(objectiveTableBody, objectiveRows, 'objective');
+        renderTableRows(threatTableBody, threatRows, 'threat');
+        renderRules();
+        renderNumberSelector();
+      }
+
+      function executeSelection() {
+        activeAnimations.forEach(({ loop, timeoutId }) => {
+          clearInterval(loop);
+          clearTimeout(timeoutId);
+        });
+        activeAnimations = [];
+
+        const inputLevel = Number(levelInput.value);
+
+        if (!Number.isInteger(inputLevel) || inputLevel < 0) {
+          return;
+        }
+
+        const objectiveIndex = Math.floor(Math.random() * objectiveRows.length);
+
+        setSelectedRows(objectiveTableBody, []);
+        setSelectedRows(threatTableBody, []);
+
+        const objectivePromise = animateSelection(objectiveTableBody, [objectiveIndex], objectiveRows.length, 3000);
+
+        if (inputLevel < 10) {
+          return;
+        }
+
+        const threatCount = getThreatCountForLevel(inputLevel);
+        const threatIndexes = threatCount === 0 ? [] : getRandomIndexes(threatRows.length, threatCount);
+
+        const threatPromise = threatCount === 0
+          ? Promise.resolve().then(() => setSelectedRows(threatTableBody, []))
+          : animateSelection(threatTableBody, threatIndexes, threatRows.length, 3000);
+
+        Promise.all([objectivePromise, threatPromise]);
+      }
+
+      levelInput.addEventListener('keydown', (event) => {
+        const forbiddenKeys = ['e', 'E', '+', '-', '.', ','];
+        if (forbiddenKeys.includes(event.key)) {
+          event.preventDefault();
+        }
+      });
+
+      levelInput.addEventListener('input', () => {
+        if (Number(levelInput.value) < 1) {
+          levelInput.value = 1;
+        }
+      });
+
+      runButton.addEventListener('click', executeSelection);
+
+      loadData();
+    </script>
+  </body>
+</html>
